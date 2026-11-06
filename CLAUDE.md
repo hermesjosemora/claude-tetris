@@ -21,4 +21,6 @@ Three files: `index.html` (markup, canvas elements, HUD, overlay), `style.css`, 
 - **Input**: one `keydown` listener (arrows, `X` rotate, `Space` hard drop, `P` pause). Rotation is `rotateCW` plus horizontal wall-kick offsets `[0, -1, 1, -2, 2]` in `tryRotate()`. All movement validity goes through `collide(shape, ox, oy)`.
 - **Rendering** is split between the main board canvas (`draw()`, including the ghost piece via `ghostY()`) and `next-canvas` (`drawNext()`); both use `drawBlock`. Canvas pixel size (300×600) is hardcoded in `index.html` and must match `COLS/ROWS × BLOCK` (30).
 
+**Theming**: colors in `style.css` are CSS variables (`:root` = dark, `[data-theme="light"]` overrides). Canvas colors come from the `THEMES` object in `game.js` (piece palette, grid, highlight). `applyTheme()` sets `data-theme`, persists to `localStorage` and redraws manually (the loop may be cancelled). The toggle button calls `blur()` so `Space` doesn't re-trigger it.
+
 Scoring/speed constants: `LINE_SCORES` × `level`; level = `floor(lines/10)+1`; `dropInterval = max(100, 1000 - (level-1)*90)`; soft drop +1/cell, hard drop +2/cell.

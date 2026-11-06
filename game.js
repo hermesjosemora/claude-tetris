@@ -15,6 +15,24 @@ const COLORS = [
   '#ffb74d', // L - orange
 ];
 
+const LIGHT_COLORS = [
+  null,
+  '#00acc1', // I
+  '#f9a825', // O
+  '#8e24aa', // T
+  '#43a047', // S
+  '#e53935', // Z
+  '#1e88e5', // J
+  '#fb8c00', // L
+];
+
+const THEMES = {
+  dark:  { colors: COLORS,       grid: '#22222e', highlight: 'rgba(255,255,255,0.12)' },
+  light: { colors: LIGHT_COLORS, grid: '#e3e6f0', highlight: 'rgba(255,255,255,0.35)' },
+};
+const THEME_KEY = 'tetris-theme';
+let theme = 'dark';
+
 const PIECES = [
   null,
   [[0,0,0,0],[1,1,1,1],[0,0,0,0],[0,0,0,0]], // I
@@ -39,6 +57,7 @@ const overlay = document.getElementById('overlay');
 const overlayTitle = document.getElementById('overlay-title');
 const overlayScore = document.getElementById('overlay-score');
 const restartBtn = document.getElementById('restart-btn');
+const themeBtn = document.getElementById('theme-toggle');
 
 let board, current, next, score, lines, level, paused, gameOver, lastTime, dropAccum, dropInterval, animId;
 
@@ -158,18 +177,18 @@ function updateHUD() {
 
 function drawBlock(context, x, y, colorIndex, size, alpha) {
   if (!colorIndex) return;
-  const color = COLORS[colorIndex];
+  const color = THEMES[theme].colors[colorIndex];
   context.globalAlpha = alpha ?? 1;
   context.fillStyle = color;
   context.fillRect(x * size + 1, y * size + 1, size - 2, size - 2);
   // highlight
-  context.fillStyle = 'rgba(255,255,255,0.12)';
+  context.fillStyle = THEMES[theme].highlight;
   context.fillRect(x * size + 1, y * size + 1, size - 2, 4);
   context.globalAlpha = 1;
 }
 
 function drawGrid() {
-  ctx.strokeStyle = '#22222e';
+  ctx.strokeStyle = THEMES[theme].grid;
   ctx.lineWidth = 0.5;
   for (let c = 1; c < COLS; c++) {
     ctx.beginPath();
@@ -300,5 +319,24 @@ document.addEventListener('keydown', e => {
 });
 
 restartBtn.addEventListener('click', init);
+
+function applyTheme(name) {
+  theme = THEMES[name] ? name : 'dark';
+  document.documentElement.dataset.theme = theme;
+  const isLight = theme === 'light';
+  themeBtn.textContent = isLight ? 'Modo oscuro' : 'Modo claro';
+  themeBtn.setAttribute('aria-pressed', String(isLight));
+  try { localStorage.setItem(THEME_KEY, theme); } catch (e) { /* ignorar */ }
+  // El bucle puede estar cancelado (pausa / game over): redibujar manualmente
+  if (current && next) { draw(); drawNext(); }
+}
+
+themeBtn.addEventListener('click', () => {
+  applyTheme(theme === 'dark' ? 'light' : 'dark');
+  themeBtn.blur(); // evita que Space reactive el botón
+});
+
+try { theme = localStorage.getItem(THEME_KEY) === 'light' ? 'light' : 'dark'; } catch (e) { theme = 'dark'; }
+applyTheme(theme);
 
 init();
